@@ -1,42 +1,39 @@
-import java.net.*;
-import java.io.*;
+package BioChat;
 
-public class Server
-{
-    public static void main(String [] args)
-    {   
-        try
-        {   
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-            ServerSocket serverSocket = new ServerSocket(4444);
-            System.out.println("Waiting for client on port "+serverSocket.getLocalPort()+"...");
-            Socket socket = serverSocket.accept();
-            System.out.println("Just connected to " + socket.getRemoteSocketAddress());
+/**
+ * Created by zhaofeng on 2016/10/21.
+ */
+public class Server {
+    private static ServerSocket serverSocket = null;
+    private static int port = 12345;
 
-            BufferedReader sin = new BufferedReader(new InputStreamReader(System.in));
-            OutputStream outToServer = socket.getOutputStream();
-            InputStream inFromServer = socket.getInputStream();
-            DataOutputStream out = new DataOutputStream(outToServer);
-            DataInputStream in = new DataInputStream(inFromServer);
-
-            String str;
-            str = sin.readLine();
-            while(!str.equals("bye")){
-                out.writeUTF(str);
-                System.out.println("Server:  "+str);
-                System.out.println("Client:  "+in.readUTF());
-                str=sin.readLine();
+    public static void main(String[] args) {
+        System.out.println("start server now");
+        try{
+            serverSocket = new ServerSocket(port);
+            ExecutorService exec = Executors.newCachedThreadPool();
+            while(true) {
+                Socket socket = serverSocket.accept();
+                exec.execute(new ServerThread(socket));
+                Thread.sleep(10000);
             }
 
-            out.close();
-            in.close();
-            socket.close();
-            serverSocket.close(); 
-        }
-        catch(IOException e)
-        {
-            System.out.println("Error"+e);
-        }
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
+
 }
